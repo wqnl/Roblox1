@@ -8,17 +8,20 @@ local UserInputService = game:GetService("UserInputService")
 -- Variables
 local player = Players.LocalPlayer
 local playerGui = player:WaitForChild("PlayerGui")
+local mouse = player:GetMouse()
 
 -- Create ScreenGui
 local screenGui = Instance.new("ScreenGui", playerGui)
 screenGui.Name = "WQNL_GUI"
 screenGui.Enabled = true
+screenGui.ResetOnSpawn = false
 
 -- Create Frame
 local frame = Instance.new("Frame", screenGui)
 frame.Size = UDim2.new(0, 300, 0, 300)
 frame.Position = UDim2.new(0.5, -150, 0.5, -150)
 frame.BackgroundColor3 = Color3.new(0.2, 0.2, 0.2)
+frame.BorderSizePixel = 0
 
 -- Create Title
 local title = Instance.new("TextLabel", frame)
@@ -29,6 +32,41 @@ title.BackgroundColor3 = Color3.new(0.3, 0.3, 0.3)
 title.TextColor3 = Color3.new(1, 1, 1)
 title.Font = Enum.Font.SourceSans
 title.TextSize = 24
+
+-- Make the frame draggable
+local dragging = false
+local dragInput, mousePos, framePos
+
+local function update(input)
+    local delta = input.Position - mousePos
+    frame.Position = UDim2.new(framePos.X.Scale, framePos.X.Offset + delta.X, framePos.Y.Scale, framePos.Y.Offset + delta.Y)
+end
+
+frame.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+        dragging = true
+        mousePos = input.Position
+        framePos = frame.Position
+
+        input.Changed:Connect(function()
+            if input.UserInputState == Enum.UserInputState.End then
+                dragging = false
+            end
+        end)
+    end
+end)
+
+frame.InputChanged:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseMovement then
+        dragInput = input
+    end
+end)
+
+UserInputService.InputChanged:Connect(function(input)
+    if input == dragInput and dragging then
+        update(input)
+    end
+end)
 
 -- Create Size Slider
 local sizeLabel = Instance.new("TextLabel", frame)
@@ -122,6 +160,10 @@ local notifications = false
 local espEnabled = true
 local hitboxesEnabled = true
 
+-- Load the ESP library and turn it on
+local esp = loadstring(game:HttpGet("https://raw.githubusercontent.com/wqnl/Roblox1/main/ESP.lua"))()
+esp:Toggle(true)
+
 -- Toggle Notifications
 notifToggle.MouseButton1Click:Connect(function()
     notifications = not notifications
@@ -145,6 +187,7 @@ end)
 local function applySettings()
     size = Vector3.new(unpack(string.split(sizeSlider.Text, ",")))
     trans = tonumber(transSlider.Text)
+    applyHitboxes()
 end
 
 -- Apply settings when values change
@@ -161,10 +204,6 @@ StarterGui:SetCore("SendNotification", {
     Icon = "",
     Duration = 5
 })
-
--- Load the ESP library and turn it on
-local esp = loadstring(game:HttpGet("https://raw.githubusercontent.com/wqnl/Roblox1/main/ESP.lua"))()
-esp:Toggle(true)
 
 -- Configure ESP settings
 esp.Boxes = true
@@ -207,19 +246,19 @@ esp:AddObjectListener(workspace, {
 -- Enable the ESP for enemy models
 esp.enemy = true
 
--- Function to apply hitboxes
+-- Function to apply hitboxes to enemy models
 local function applyHitboxes()
-    if not hitboxesEnabled then return end
-    -- Apply hitboxes to all existing enemy models in the workspace
-    for _, v in pairs(workspace:GetDescendants()) do
-        if v.Name == "soldier_model" and v:IsA("Model") and not v:FindFirstChild("friendly_marker") then
-            local pos = v:FindFirstChild("HumanoidRootPart").Position
-            for _, bp in pairs(workspace:GetChildren()) do
-                if bp:IsA("BasePart") then
-                    local distance = (bp.Position - pos).Magnitude
-                    if distance <= 5 then
-                        bp.Transparency = trans
-                        bp.Size = size
+    if hitboxesEnabled then
+        for _, v in pairs(workspace:GetDescendants()) do
+            if v.Name == "soldier_model" and v:IsA("Model") and not v:FindFirstChild("friendly_marker") then
+                local pos = v:FindFirstChild("HumanoidRootPart").Position
+                for _, bp in pairs(workspace:GetChildren()) do
+                    if bp:IsA("BasePart") then
+                        local distance = (bp.Position - pos).Magnitude
+                        if distance <= 5 then
+                            bp.Transparency = trans
+                            bp.Size = size
+                        end
                     end
                 end
             end
@@ -247,13 +286,15 @@ local function handleDescendantAdded(descendant)
         end
 
         -- Apply hitboxes to the new enemy model
-        local pos = descendant:FindFirstChild("HumanoidRootPart").Position
-        for _, bp in pairs(workspace:GetChildren()) do
-            if bp:IsA("BasePart") then
-                local distance = (bp.Position - pos).Magnitude
-                if distance <= 5 then
-                    bp.Transparency = trans
-                    bp.Size = size
+        if hitboxesEnabled then
+            local pos = descendant:FindFirstChild("HumanoidRootPart").Position
+            for _, bp in pairs(workspace:GetChildren()) do
+                if bp:IsA("BasePart") then
+                    local distance = (bp.Position - pos).Magnitude
+                    if distance <= 5 then
+                        bp.Transparency = trans
+                        bp.Size = size
+                    end
                 end
             end
         end
@@ -287,10 +328,16 @@ StarterGui:SetCore("SendNotification", {
     Duration = 5
 })
 
--- Toggle GUI visibility with Insert key
+-- Toggle GUI visibility with Insert key and focus mouse
 UserInputService.InputBegan:Connect(function(input, gameProcessedEvent)
     if gameProcessedEvent then return end
     if input.KeyCode == Enum.KeyCode.Insert then
         screenGui.Enabled = not screenGui.Enabled
+        if screenGui.Enabled then
+            UserInputService.MouseIconEnabled = true
+            mouse.Icon = "rbxasset://textures/ArrowCursor.png"
+        else
+            UserInputService.MouseIconEnabled = false
+        end
     end
 end)

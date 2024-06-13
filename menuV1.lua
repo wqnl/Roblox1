@@ -1,9 +1,8 @@
--- WARNING: Created by discord: wqnl
-
 -- Services
 local Players = game:GetService("Players")
 local StarterGui = game:GetService("StarterGui")
 local UserInputService = game:GetService("UserInputService")
+local HttpService = game:GetService("HttpService")
 
 -- Variables
 local player = Players.LocalPlayer
@@ -18,8 +17,8 @@ screenGui.ResetOnSpawn = false
 
 -- Create Frame
 local frame = Instance.new("Frame", screenGui)
-frame.Size = UDim2.new(0, 300, 0, 200)
-frame.Position = UDim2.new(0.5, -150, 0.5, -100)
+frame.Size = UDim2.new(0, 300, 0, 250)
+frame.Position = UDim2.new(0.5, -150, 0.5, -125)
 frame.BackgroundColor3 = Color3.new(0.1, 0.1, 0.1)
 frame.BorderSizePixel = 0
 
@@ -105,6 +104,100 @@ espToggle.MouseButton1Click:Connect(function()
     esp:Toggle(espEnabled)
 end)
 
+-- Create Hitbox Toggle
+local hitboxLabel = Instance.new("TextLabel", frame)
+hitboxLabel.Size = UDim2.new(0, 100, 0, 40)
+hitboxLabel.Position = UDim2.new(0, 10, 0, 110)
+hitboxLabel.Text = "Hitboxes"
+hitboxLabel.TextColor3 = Color3.new(1, 1, 1)
+hitboxLabel.BackgroundTransparency = 1
+hitboxLabel.Font = Enum.Font.SourceSans
+hitboxLabel.TextSize = 18
+
+local hitboxToggle = Instance.new("TextButton", frame)
+hitboxToggle.Size = UDim2.new(0, 100, 0, 40)
+hitboxToggle.Position = UDim2.new(0, 120, 0, 110)
+hitboxToggle.Text = "On"
+hitboxToggle.BackgroundColor3 = Color3.new(0.2, 0.2, 0.2)
+hitboxToggle.TextColor3 = Color3.new(1, 1, 1)
+hitboxToggle.Font = Enum.Font.SourceSans
+hitboxToggle.TextSize = 18
+
+-- Hitbox variables
+local hitboxesEnabled = true
+local size = Vector3.new(10, 10, 10)
+local trans = 1
+
+-- Function to apply hitboxes
+local function applyHitboxes()
+    if hitboxesEnabled then
+        for _, v in pairs(workspace:GetDescendants()) do
+            if v.Name == "soldier_model" and v:IsA("Model") and not v:FindFirstChild("friendly_marker") then
+                local pos = v:FindFirstChild("HumanoidRootPart").Position
+                for _, bp in pairs(workspace:GetChildren()) do
+                    if bp:IsA("BasePart") then
+                        local distance = (bp.Position - pos).Magnitude
+                        if distance <= 5 then
+                            bp.Transparency = trans
+                            bp.Size = size
+                        end
+                    end
+                end
+            end
+        end
+    end
+end
+
+-- Toggle Hitboxes
+hitboxToggle.MouseButton1Click:Connect(function()
+    hitboxesEnabled = not hitboxesEnabled
+    hitboxToggle.Text = hitboxesEnabled and "On" or "Off"
+    applyHitboxes()
+end)
+
+-- Initial hitbox application
+task.wait(1)
+applyHitboxes()
+
+-- Function to handle when a new descendant is added to the workspace
+local function handleDescendantAdded(descendant)
+    task.wait(1)
+    if descendant.Name == "soldier_model" and descendant:IsA("Model") and not descendant:FindFirstChild("friendly_marker") then
+        if hitboxesEnabled then
+            local pos = descendant:FindFirstChild("HumanoidRootPart").Position
+            for _, bp in pairs(workspace:GetChildren()) do
+                if bp:IsA("BasePart") then
+                    local distance = (bp.Position - pos).Magnitude
+                    if distance <= 5 then
+                        bp.Transparency = trans
+                        bp.Size = size
+                    end
+                end
+            end
+        end
+    end
+end
+
+-- Connect the handleDescendantAdded function to the DescendantAdded event of the workspace
+task.spawn(function()
+    workspace.DescendantAdded:Connect(handleDescendantAdded)
+end)
+
+-- Toggle GUI visibility with Insert key and focus mouse
+UserInputService.InputBegan:Connect(function(input, gameProcessedEvent)
+    if gameProcessedEvent then return end
+    if input.KeyCode == Enum.KeyCode.Insert then
+        screenGui.Enabled = not screenGui.Enabled
+        if screenGui.Enabled then
+            UserInputService.MouseIconEnabled = true
+            UserInputService.InputMode = Enum.UserInputType.MouseMovement
+        else
+            UserInputService.MouseIconEnabled = false
+            UserInputService.InputMode = Enum.UserInputType.None
+        end
+    end
+end)
+
 -- Store the time when the code starts executing
 local start = os.clock()
 
@@ -137,18 +230,3 @@ StarterGui:SetCore("SendNotification", {
     Icon = "",
     Duration = 5
 })
-
--- Toggle GUI visibility with Insert key and focus mouse
-UserInputService.InputBegan:Connect(function(input, gameProcessedEvent)
-    if gameProcessedEvent then return end
-    if input.KeyCode == Enum.KeyCode.Insert then
-        screenGui.Enabled = not screenGui.Enabled
-        if screenGui.Enabled then
-            UserInputService.MouseIconEnabled = true
-            UserInputService.InputMode = Enum.UserInputType.MouseMovement
-        else
-            UserInputService.MouseIconEnabled = false
-            UserInputService.InputMode = Enum.UserInputType.None
-        end
-    end
-end)

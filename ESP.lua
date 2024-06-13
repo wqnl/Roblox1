@@ -223,7 +223,7 @@ function boxBase:Update()
         local TagPos, Vis5 = WorldToViewportPoint(cam, locs.TagPos.p)
         
         if Vis5 then
-            self.Components.Name.Visible = true
+            self.Components.Name.Visible = false
             self.Components.Name.Position = Vector2.new(TagPos.X, TagPos.Y)
             self.Components.Name.Text = self.Name
             self.Components.Name.Color = color

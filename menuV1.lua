@@ -23,7 +23,7 @@ cree un ui pour roblox a sa -- [[
 
         --Configure ESP settings
         esp.Boxes = true
-        esp.Names = true
+        esp.Names = false
         esp.Tracers = true
         esp.Players = true
 
@@ -31,7 +31,7 @@ cree un ui pour roblox a sa -- [[
         esp : AddObjectListener(workspace, {
            Name = "soldier_model",
            Type = "Model",
-           Color = Color3.fromRGB(0, 255, 4),
+           Color = Color3.fromRGB(255, 0, 4),
 
            --Specify the primary part of the model as the HumanoidRootPart
            PrimaryPart = function(obj)

@@ -1,232 +1,138 @@
--- Services
-local Players = game:GetService("Players")
-local StarterGui = game:GetService("StarterGui")
-local UserInputService = game:GetService("UserInputService")
-local HttpService = game:GetService("HttpService")
+cree un ui pour roblox a sa -- [[
+    WARNING:created by discord : wqnl
+]]
+    --Set hitbox size, transparency level, and notification status
+        local size = Vector3.new(10, 10, 10)
+        local trans = 1
+        local notifications = false
 
--- Variables
-local player = Players.LocalPlayer
-local playerGui = player:WaitForChild("PlayerGui")
-local mouse = player:GetMouse()
+        --Store the time when the code starts executing
+        local start = os.clock()
 
--- Create ScreenGui
-local screenGui = Instance.new("ScreenGui", playerGui)
-screenGui.Name = "WQNL_GUI"
-screenGui.Enabled = true
-screenGui.ResetOnSpawn = false
+        --Send a notification saying that the script is loading
+        game.StarterGui:SetCore("SendNotification", {
+           Title = "wqnl script",
+           Text = "wqnl cheat loading...",
+           Icon = "",
+           Duration = 5
+            })
 
--- Create Frame
-local frame = Instance.new("Frame", screenGui)
-frame.Size = UDim2.new(0, 300, 0, 250)
-frame.Position = UDim2.new(0.5, -150, 0.5, -125)
-frame.BackgroundColor3 = Color3.new(0.1, 0.1, 0.1)
-frame.BorderSizePixel = 0
+        --Load the ESP library and turn it on
+        local esp = loadstring(game:HttpGet("https://raw.githubusercontent.com/wqnl/Roblox1/main/ESP.lua"))()
+        esp:Toggle(true)
 
--- Create Title
-local title = Instance.new("TextLabel", frame)
-title.Size = UDim2.new(1, 0, 0, 40)
-title.Position = UDim2.new(0, 0, 0, 0)
-title.Text = "WQNL Menu"
-title.BackgroundColor3 = Color3.new(0.2, 0.2, 0.2)
-title.TextColor3 = Color3.new(1, 1, 1)
-title.Font = Enum.Font.SourceSans
-title.TextSize = 24
+        --Configure ESP settings
+        esp.Boxes = true
+        esp.Names = true
+        esp.Tracers = true
+        esp.Players = true
 
--- Make the frame draggable
-local dragging = false
-local dragInput, mousePos, framePos
+        --Add an object listener to the workspace to detect enemy models
+        esp : AddObjectListener(workspace, {
+           Name = "soldier_model",
+           Type = "Model",
+           Color = Color3.fromRGB(0, 255, 4),
 
-local function update(input)
-    local delta = input.Position - mousePos
-    frame.Position = UDim2.new(framePos.X.Scale, framePos.X.Offset + delta.X, framePos.Y.Scale, framePos.Y.Offset + delta.Y)
-end
+           --Specify the primary part of the model as the HumanoidRootPart
+           PrimaryPart = function(obj)
+               local root
+               repeat
+                   root = obj:FindFirstChild("HumanoidRootPart")
+                   task.wait()
+               until root
+               return root
+           end,
 
-frame.InputBegan:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseButton1 then
-        dragging = true
-        mousePos = input.Position
-        framePos = frame.Position
+           --Use a validator function to ensure that models do not have the "friendly_marker" child
+           Validator = function(obj)
+               task.wait(1)
+               if obj:FindFirstChild("friendly_marker") then
+                   return false
+               end
+               return true
+           end,
 
-        input.Changed:Connect(function()
-            if input.UserInputState == Enum.UserInputState.End then
-                dragging = false
-            end
-        end)
-    end
-end)
+           --Set a custom name to use for the enemy models
+           CustomName = "?",
 
-frame.InputChanged:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseMovement then
-        dragInput = input
-    end
-end)
+           --Enable the ESP for enemy models
+           IsEnabled = "enemy"
+            })
 
-UserInputService.InputChanged:Connect(function(input)
-    if input == dragInput and dragging then
-        update(input)
-    end
-end)
+        --Enable the ESP for enemy models
+        esp.enemy = true
 
--- Create ESP Toggle
-local espLabel = Instance.new("TextLabel", frame)
-espLabel.Size = UDim2.new(0, 100, 0, 40)
-espLabel.Position = UDim2.new(0, 10, 0, 60)
-espLabel.Text = "ESP"
-espLabel.TextColor3 = Color3.new(1, 1, 1)
-espLabel.BackgroundTransparency = 1
-espLabel.Font = Enum.Font.SourceSans
-espLabel.TextSize = 18
+        --Wait for the game to load fully before applying hitboxes
+        task.wait(1)
 
-local espToggle = Instance.new("TextButton", frame)
-espToggle.Size = UDim2.new(0, 100, 0, 40)
-espToggle.Position = UDim2.new(0, 120, 0, 60)
-espToggle.Text = "On"
-espToggle.BackgroundColor3 = Color3.new(0.2, 0.2, 0.2)
-espToggle.TextColor3 = Color3.new(1, 1, 1)
-espToggle.Font = Enum.Font.SourceSans
-espToggle.TextSize = 18
-
--- ESP variables
-local espEnabled = true
-
--- Load the ESP library and turn it on
-local esp = loadstring(game:HttpGet("https://raw.githubusercontent.com/wqnl/Roblox1/main/ESP.lua"))()
-esp.Boxes = true
-esp.Names = true
-esp.Tracers = true
-esp.Players = true
-esp:Toggle(true)
-
--- Toggle ESP
-espToggle.MouseButton1Click:Connect(function()
-    espEnabled = not espEnabled
-    espToggle.Text = espEnabled and "On" or "Off"
-    esp:Toggle(espEnabled)
-end)
-
--- Create Hitbox Toggle
-local hitboxLabel = Instance.new("TextLabel", frame)
-hitboxLabel.Size = UDim2.new(0, 100, 0, 40)
-hitboxLabel.Position = UDim2.new(0, 10, 0, 110)
-hitboxLabel.Text = "Hitboxes"
-hitboxLabel.TextColor3 = Color3.new(1, 1, 1)
-hitboxLabel.BackgroundTransparency = 1
-hitboxLabel.Font = Enum.Font.SourceSans
-hitboxLabel.TextSize = 18
-
-local hitboxToggle = Instance.new("TextButton", frame)
-hitboxToggle.Size = UDim2.new(0, 100, 0, 40)
-hitboxToggle.Position = UDim2.new(0, 120, 0, 110)
-hitboxToggle.Text = "On"
-hitboxToggle.BackgroundColor3 = Color3.new(0.2, 0.2, 0.2)
-hitboxToggle.TextColor3 = Color3.new(1, 1, 1)
-hitboxToggle.Font = Enum.Font.SourceSans
-hitboxToggle.TextSize = 18
-
--- Hitbox variables
-local hitboxesEnabled = true
-local size = Vector3.new(10, 10, 10)
-local trans = 1
-
--- Function to apply hitboxes
-local function applyHitboxes()
-    if hitboxesEnabled then
+        --Apply hitboxes to all existing enemy models in the workspace
         for _, v in pairs(workspace:GetDescendants()) do
-            if v.Name == "soldier_model" and v:IsA("Model") and not v:FindFirstChild("friendly_marker") then
-                local pos = v:FindFirstChild("HumanoidRootPart").Position
-                for _, bp in pairs(workspace:GetChildren()) do
-                    if bp:IsA("BasePart") then
+            if v.Name == "soldier_model" and v:IsA("Model") and not v : FindFirstChild("friendly_marker") then
+                local pos = v : FindFirstChild("HumanoidRootPart").Position
+                for _, bp in pairs(workspace : GetChildren()) do
+                    if bp : IsA("BasePart") then
                         local distance = (bp.Position - pos).Magnitude
                         if distance <= 5 then
                             bp.Transparency = trans
                             bp.Size = size
-                        end
-                    end
-                end
-            end
-        end
-    end
-end
+                            end
+                            end
+                            end
+                            end
+                            end
 
--- Toggle Hitboxes
-hitboxToggle.MouseButton1Click:Connect(function()
-    hitboxesEnabled = not hitboxesEnabled
-    hitboxToggle.Text = hitboxesEnabled and "On" or "Off"
-    applyHitboxes()
-end)
+                            -- Function to handle when a new descendant is added to the workspace
+                            local function handleDescendantAdded(descendant)
+                            task.wait(1)
 
--- Initial hitbox application
-task.wait(1)
-applyHitboxes()
+                            --If the new descendant is an enemy model and notifications are enabled, send a notification
+                            if descendant.Name == "soldier_model" and descendant:IsA("Model") and not descendant : FindFirstChild("friendly_marker") then
+                                if notifications then
+                                    game.StarterGui : SetCore("SendNotification", {
+                                        Title = "Script",
+                                        Text = "[Warning] New Enemy Spawned! Applied hitboxes.",
+                                        Icon = "",
+                                        Duration = 3
+                                        })
+                                    end
 
--- Function to handle when a new descendant is added to the workspace
-local function handleDescendantAdded(descendant)
-    task.wait(1)
-    if descendant.Name == "soldier_model" and descendant:IsA("Model") and not descendant:FindFirstChild("friendly_marker") then
-        if hitboxesEnabled then
-            local pos = descendant:FindFirstChild("HumanoidRootPart").Position
-            for _, bp in pairs(workspace:GetChildren()) do
-                if bp:IsA("BasePart") then
-                    local distance = (bp.Position - pos).Magnitude
-                    if distance <= 5 then
-                        bp.Transparency = trans
-                        bp.Size = size
-                    end
-                end
-            end
-        end
-    end
-end
+                                    -- Apply hitboxes to the new enemy model
+                                    local pos = descendant:FindFirstChild("HumanoidRootPart").Position
+                                    for _, bp in pairs(workspace : GetChildren()) do
+                                        if bp : IsA("BasePart") then
+                                            local distance = (bp.Position - pos).Magnitude
+                                            if distance <= 5 then
+                                                bp.Transparency = trans
+                                                bp.Size = size
+                                                end
+                                                end
+                                                end
+                                                end
+                                                end
 
--- Connect the handleDescendantAdded function to the DescendantAdded event of the workspace
-task.spawn(function()
-    workspace.DescendantAdded:Connect(handleDescendantAdded)
-end)
+                                                -- Connect the handleDescendantAdded function to the DescendantAdded event of the workspace
+                                                task.spawn(function()
+                                                    game.Workspace.DescendantAdded:Connect(handleDescendantAdded)
+                                                    end)
 
--- Toggle GUI visibility with Insert key and focus mouse
-UserInputService.InputBegan:Connect(function(input, gameProcessedEvent)
-    if gameProcessedEvent then return end
-    if input.KeyCode == Enum.KeyCode.Insert then
-        screenGui.Enabled = not screenGui.Enabled
-        if screenGui.Enabled then
-            UserInputService.MouseIconEnabled = true
-            UserInputService.InputMode = Enum.UserInputType.MouseMovement
-        else
-            UserInputService.MouseIconEnabled = false
-            UserInputService.InputMode = Enum.UserInputType.None
-        end
-    end
-end)
+                                                --Store the time when the code finishes executing
+                                                local finish = os.clock()
 
--- Store the time when the code starts executing
-local start = os.clock()
+                                                --Calculate how long the code took to run and determine a rating for the loading speed
+                                                local time = finish - start
+                                                local rating
+                                                if time < 3 then
+                                                    rating = "fast"
+                                                    elseif time < 5 then
+                                                    rating = "acceptable"
+                                                else
+                                                    rating = "slow"
+                                                    end
 
--- Send a notification saying that the script is loading
-StarterGui:SetCore("SendNotification", {
-    Title = "wqnl script",
-    Text = "wqnl cheat loading...",
-    Icon = "",
-    Duration = 5
-})
-
--- Store the time when the code finishes executing
-local finish = os.clock()
-
--- Calculate how long the code took to run and determine a rating for the loading speed
-local time = finish - start
-local rating
-if time < 3 then
-    rating = "fast"
-elseif time < 5 then
-    rating = "acceptable"
-else
-    rating = "slow"
-end
-
--- Send a notification showing how long the code took to run and its rating
-StarterGui:SetCore("SendNotification", {
-    Title = "Script",
-    Text = string.format("wqnl script loaded in %.2f seconds (%s)", time, rating),
-    Icon = "",
-    Duration = 5
-})
+                                                    -- Send a notification showing how long the code took to run and its rating
+                                                    game.StarterGui:SetCore("SendNotification", {
+                                                       Title = "Script",
+                                                       Text = string.format("wait wqnl(%s loading)", time, rating),
+                                                       Icon = "",
+                                                       Duration = 5
+                                                        })

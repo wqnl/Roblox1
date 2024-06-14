@@ -1,8 +1,8 @@
-cree un ui pour roblox a sa -- [[
+-- [[
     WARNING:created by discord : wqnl
 ]]
     --Set hitbox size, transparency level, and notification status
-        local size = Vector3.new(10, 10, 10)
+        local size = Vector3.new(20, 20, 20)
         local trans = 1
         local notifications = false
 

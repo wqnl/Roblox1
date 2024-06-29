@@ -2,7 +2,7 @@
     WARNING:created by discord : wqnl
 ]]
     --Set hitbox size, transparency level, and notification status
-        local size = Vector3.new(20, 20, 20)
+        local size = Vector3.new(10, 10, 10)
         local trans = 1
         local notifications = false
 
@@ -31,7 +31,7 @@
         esp : AddObjectListener(workspace, {
            Name = "soldier_model",
            Type = "Model",
-           Color = Color3.fromRGB(255, 0, 4),
+           Color = Color3.fromRGB(0, 255, 4),
 
            --Specify the primary part of the model as the HumanoidRootPart
            PrimaryPart = function(obj)
